@@ -44,7 +44,7 @@ There are two supported ways to run this version:
 
 1. macOS native terminal mode, no Docker required
 2. Windows Docker mode, recommended when Docker is available
-3. Linux VPS production mode, recommended for Hostinger deployment
+3. Linux VPS production mode
 
 ## 1) macOS Setup, No Docker
 
@@ -307,7 +307,7 @@ The project already includes:
 - `react_version/.env.example`
 - `react_version/backend/.env.example`
 
-## 9) Hostinger VPS Production Deployment
+## 9) Linux VPS Production Deployment
 
 Production deployment uses:
 
@@ -315,6 +315,8 @@ Production deployment uses:
 - `gunicorn` for Django
 - `Caddy` as reverse proxy and static frontend server
 - automatic HTTPS when `APP_DOMAIN` points to your VPS
+
+This variant is intended for a plain Linux VPS where ports `80` and `443` are free.
 
 ### 9.1 Prepare DNS
 
@@ -480,10 +482,138 @@ git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-## 10) Production Notes
+## 10) Hostinger Docker + Traefik Deployment
+
+If your Hostinger VPS was created from the `Docker and Traefik` template, do not use `docker-compose.prod.yml` directly.
+
+Reason:
+
+- Hostinger Traefik already listens on host ports `80` and `443`
+- only one reverse proxy can own those ports
+- your application should join the shared Traefik network instead of binding those ports itself
+
+Hostinger documents this exact pattern for multiple Compose projects on one VPS:
+
+- Traefik remains the single entry point on `80/443`
+- your app is exposed through Docker labels
+- your project joins the external `traefik-proxy` network
+
+Source:
+
+- https://www.hostinger.com/support/connecting-multiple-docker-compose-projects-using-traefik-in-hostinger-docker-manager/
+
+### 10.1 Files to use on Hostinger
+
+Use:
+
+- `docker-compose.hostinger.yml`
+- `deploy/caddy/Caddyfile.hostinger`
+- `deploy/caddy/Dockerfile.hostinger`
+
+### 10.2 Required DNS
+
+Point both:
+
+- `stylestep.lt`
+- `www.stylestep.lt`
+
+to your actual VPS IP.
+
+### 10.3 Check that the Traefik network exists
+
+```bash
+docker network ls | grep traefik
+```
+
+Expected:
+
+- `traefik-proxy`
+
+If it does not exist, deploy the default Traefik project from Hostinger Docker Manager first.
+
+### 10.4 Prepare environment files
+
+Root compose env:
+
+```bash
+cd /opt/stylestep
+cp .env.example .env
+```
+
+Set:
+
+```env
+APP_DOMAIN=stylestep.lt
+```
+
+Backend env:
+
+```bash
+cd /opt/stylestep/backend
+cp .env.example .env
+```
+
+Set at least:
+
+```env
+DJANGO_SECRET_KEY=replace_with_a_long_random_secret_key
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=stylestep.lt,www.stylestep.lt
+DJANGO_CSRF_TRUSTED_ORIGINS=https://stylestep.lt,https://www.stylestep.lt
+DJANGO_SECURE_SSL_REDIRECT=False
+DJANGO_SESSION_COOKIE_SECURE=True
+DJANGO_CSRF_COOKIE_SECURE=True
+TIME_ZONE=Europe/Vilnius
+
+USE_SQLITE=False
+POSTGRES_DB=ai_aprangos_asistentas
+POSTGRES_USER=ai_aprangos_asistentas
+POSTGRES_PASSWORD=replace_with_a_strong_db_password
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5-mini
+OPENAI_ENABLE_OUTFIT_IMAGE=True
+OPENAI_IMAGE_MODEL=gpt-image-1
+OPENAI_IMAGE_SIZE=1024x1024
+```
+
+### 10.5 Start on Hostinger
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.hostinger.yml up -d --build
+```
+
+### 10.6 Create the admin user
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.hostinger.yml exec backend python manage.py createsuperuser
+```
+
+### 10.7 Check logs
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.hostinger.yml ps
+docker compose -f docker-compose.hostinger.yml logs -f backend worker web
+```
+
+### 10.8 Update after a new GitHub push
+
+```bash
+cd /opt/stylestep
+git pull
+docker compose -f docker-compose.hostinger.yml up -d --build
+```
+
+## 11) Production Notes
 
 - local development still uses `docker-compose.yml`
-- production deployment uses `docker-compose.prod.yml`
+- plain Linux VPS deployment uses `docker-compose.prod.yml`
+- Hostinger `Docker and Traefik` template uses `docker-compose.hostinger.yml`
 - `Caddy` serves the built React frontend and handles HTTPS automatically when the domain resolves to the VPS
 - Django runs behind `gunicorn`
 - uploaded files are stored in the Docker volume `backend_media`
