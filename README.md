@@ -44,6 +44,7 @@ There are two supported ways to run this version:
 
 1. macOS native terminal mode, no Docker required
 2. Windows Docker mode, recommended when Docker is available
+3. Linux VPS production mode, recommended for Hostinger deployment
 
 ## 1) macOS Setup, No Docker
 
@@ -282,3 +283,208 @@ python3 manage.py migrate
 - In local development, Vite proxies `/api`, `/admin`, and `/media` to Django
 - The generated outfit image still uses the uploaded clothing photo as a reference input when possible
 - If the worker is not running, requests will remain in `QUEUED`
+
+## 8) GitHub Checklist Before Deployment
+
+Recommended repository scope:
+
+- create a private GitHub repository for `react_version/`
+
+Do not commit:
+
+- `backend/.env`
+- `backend/.venv/`
+- `backend/db.sqlite3`
+- `backend/media/`
+- `backend/staticfiles/`
+- `frontend/node_modules/`
+- `frontend/dist/`
+
+The project already includes:
+
+- `react_version/.gitignore`
+- `react_version/.dockerignore`
+- `react_version/.env.example`
+- `react_version/backend/.env.example`
+
+## 9) Hostinger VPS Production Deployment
+
+Production deployment uses:
+
+- `docker-compose.prod.yml`
+- `gunicorn` for Django
+- `Caddy` as reverse proxy and static frontend server
+- automatic HTTPS when `APP_DOMAIN` points to your VPS
+
+### 9.1 Prepare DNS
+
+In Hostinger DNS, point your domain to the VPS:
+
+- `A` record for `@` -> your VPS public IP
+- `A` record for `www` -> your VPS public IP
+
+### 9.2 Open firewall ports
+
+Public:
+
+- `22`
+- `80`
+- `443`
+
+Do not expose publicly:
+
+- `5432`
+- `8000`
+
+If needed:
+
+```bash
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status
+```
+
+### 9.3 Connect to the server
+
+```bash
+ssh root@YOUR_SERVER_IP
+```
+
+### 9.4 Install git if needed
+
+```bash
+apt update && apt install -y git
+```
+
+### 9.5 Clone the repository
+
+```bash
+mkdir -p /opt/stylestep
+cd /opt/stylestep
+git clone https://github.com/vb100/stylestep-react.git .
+```
+
+### 9.6 Create the root Compose environment file
+
+This file is used by `docker-compose.prod.yml` for the public domain:
+
+```bash
+cd /opt/stylestep
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+APP_DOMAIN=your-domain.lt
+```
+
+If DNS is not ready yet, use a temporary HTTP-only test value:
+
+```env
+APP_DOMAIN=http://YOUR_SERVER_IP
+```
+
+After DNS starts resolving correctly, change it back to:
+
+```env
+APP_DOMAIN=your-domain.lt
+```
+
+### 9.7 Create the Django backend environment file
+
+```bash
+cd /opt/stylestep/backend
+cp .env.example .env
+```
+
+Edit `backend/.env` and set at least:
+
+```env
+DJANGO_SECRET_KEY=replace_with_a_long_random_secret_key
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-domain.lt,www.your-domain.lt
+DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.lt,https://www.your-domain.lt
+DJANGO_SECURE_SSL_REDIRECT=False
+DJANGO_SESSION_COOKIE_SECURE=True
+DJANGO_CSRF_COOKIE_SECURE=True
+TIME_ZONE=Europe/Vilnius
+
+USE_SQLITE=False
+POSTGRES_DB=ai_aprangos_asistentas
+POSTGRES_USER=ai_aprangos_asistentas
+POSTGRES_PASSWORD=replace_with_a_strong_db_password
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5-mini
+OPENAI_ENABLE_OUTFIT_IMAGE=True
+OPENAI_IMAGE_MODEL=gpt-image-1
+OPENAI_IMAGE_SIZE=1024x1024
+```
+
+Important:
+
+- if a secret contains the `$` character, write it as `$$` inside `.env`
+- `DJANGO_ALLOWED_HOSTS` must include the real public domain
+- `DJANGO_CSRF_TRUSTED_ORIGINS` must include the HTTPS domain
+
+### 9.8 Start the production stack
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+This starts:
+
+- `db`
+- `backend`
+- `worker`
+- `web`
+
+### 9.9 Create the admin user
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.prod.yml exec backend python manage.py createsuperuser
+```
+
+### 9.10 Check logs and container state
+
+```bash
+cd /opt/stylestep
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f backend worker web
+```
+
+### 9.11 Open the site
+
+If DNS is already pointing to the VPS:
+
+- `https://your-domain.lt`
+- `https://your-domain.lt/admin/`
+
+If you are still testing by IP:
+
+- `http://YOUR_SERVER_IP`
+
+### 9.12 Update after a new GitHub push
+
+```bash
+cd /opt/stylestep
+git pull
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+## 10) Production Notes
+
+- local development still uses `docker-compose.yml`
+- production deployment uses `docker-compose.prod.yml`
+- `Caddy` serves the built React frontend and handles HTTPS automatically when the domain resolves to the VPS
+- Django runs behind `gunicorn`
+- uploaded files are stored in the Docker volume `backend_media`
+- PostgreSQL data is stored in the Docker volume `postgres_data`
