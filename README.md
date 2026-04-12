@@ -492,11 +492,14 @@ Reason:
 - only one reverse proxy can own those ports
 - your application should join the shared Traefik network instead of binding those ports itself
 
-Hostinger documents this exact pattern for multiple Compose projects on one VPS:
+Hostinger documents the general Traefik pattern for multiple Compose projects on one VPS:
 
 - Traefik remains the single entry point on `80/443`
 - your app is exposed through Docker labels
-- your project joins the external `traefik-proxy` network
+- on some VPS templates Traefik uses a shared Docker network
+- on other templates, including the one confirmed in this project, Traefik runs in `host` network mode
+
+This repository is now adapted for the `host` network Traefik case.
 
 Source:
 
@@ -519,17 +522,19 @@ Point both:
 
 to your actual VPS IP.
 
-### 10.3 Check that the Traefik network exists
+### 10.3 Check that Traefik is running
 
 ```bash
-docker network ls | grep traefik
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
+ss -tulpn | grep -E ':80|:443' || true
 ```
 
 Expected:
 
-- `traefik-proxy`
+- a running Traefik container
+- ports `80` and `443` already handled by Traefik
 
-If it does not exist, deploy the default Traefik project from Hostinger Docker Manager first.
+Do not stop it. Your app should run behind it.
 
 ### 10.4 Prepare environment files
 

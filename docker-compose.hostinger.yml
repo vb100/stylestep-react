@@ -72,14 +72,10 @@ services:
         condition: service_started
     labels:
       - traefik.enable=true
-      - traefik.docker.network=traefik-proxy
       - traefik.http.routers.stylestep.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)
       - traefik.http.routers.stylestep.entrypoints=websecure
       - traefik.http.routers.stylestep.tls.certresolver=letsencrypt
       - traefik.http.services.stylestep.loadbalancer.server.port=80
-    networks:
-      - default
-      - traefik-proxy
     volumes:
       - backend_media:/srv/media:ro
       - backend_static:/srv/static:ro
@@ -88,7 +84,3 @@ volumes:
   postgres_data:
   backend_media:
   backend_static:
-
-networks:
-  traefik-proxy:
-    external: true
