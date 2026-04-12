@@ -1,0 +1,61 @@
+{% extends 'stylist/base.html' %}
+
+{% block title %}Processing | AI aprangos asistentas{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Request submitted</h1>
+    <p><strong>Request ID:</strong> {{ styling_request.id }}</p>
+    <p><strong>Status:</strong> <span id="status-value">{{ styling_request.status }}</span></p>
+    <p id="status-error" class="error"></p>
+    <p class="muted">This page checks status automatically.</p>
+    <p id="status-hint" class="muted"></p>
+    <p><a href="{% url 'stylist:home' %}">Create another request</a></p>
+</section>
+
+<script>
+    (function() {
+        const statusUrl = "{{ status_url }}";
+        const fallbackResultUrl = "{{ result_url }}";
+        const statusEl = document.getElementById("status-value");
+        const errorEl = document.getElementById("status-error");
+
+        const maxAttempts = 40;
+        let attempts = 0;
+
+        async function poll() {
+            attempts += 1;
+            try {
+                const response = await fetch(statusUrl, {cache: "no-store"});
+                if (!response.ok) {
+                    throw new Error("Status endpoint failed");
+                }
+                const data = await response.json();
+                statusEl.textContent = data.status;
+
+                if (data.status === "DONE") {
+                    window.location.href = data.result_url || fallbackResultUrl;
+                    return;
+                }
+                if (data.status === "FAILED") {
+                    errorEl.textContent = data.error || "The request failed.";
+                    return;
+                }
+            } catch (error) {
+                errorEl.textContent = "Could not refresh status. Retrying...";
+            }
+
+            if (attempts >= maxAttempts) {
+                const hint = "Still queued. This usually means the Celery worker is not running or Redis is unreachable.";
+                document.getElementById("status-hint").textContent = hint;
+                setTimeout(poll, 15000);
+                return;
+            }
+
+            setTimeout(poll, 3000);
+        }
+
+        setTimeout(poll, 1500);
+    })();
+</script>
+{% endblock %}

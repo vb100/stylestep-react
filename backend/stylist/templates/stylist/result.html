@@ -1,0 +1,138 @@
+{% extends 'stylist/base.html' %}
+
+{% block title %}Results | AI aprangos asistentas{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Styling Result</h1>
+    <p><strong>Request ID:</strong> {{ styling_request.id }}</p>
+    <p><strong>Status:</strong> {{ styling_request.status }}</p>
+    {% if styling_request.ai_latency_ms %}
+        <p><strong>AI latency:</strong> {{ styling_request.ai_latency_ms }} ms</p>
+    {% endif %}
+    {% if styling_request.image_latency_ms %}
+        <p><strong>Image latency:</strong> {{ styling_request.image_latency_ms }} ms</p>
+    {% endif %}
+    {% if styling_request.error_message and styling_request.status == "FAILED" %}
+        <p class="error">{{ styling_request.error_message }}</p>
+    {% endif %}
+</section>
+
+{% if result %}
+    <section class="card">
+        <h2>Generated outfit visual</h2>
+        {% if generated_outfit %}
+            <div class="generated-image-meta">
+                <span class="outfit-badge">{{ generated_outfit.option_label }}</span>
+                <span class="outfit-badge outfit-badge--accent">{{ generated_outfit.variant_label }}</span>
+                <p class="generated-image-summary">
+                    This visual is generated from {{ generated_outfit.option_label }}:
+                    <strong>{{ generated_outfit.title }}</strong>
+                </p>
+            </div>
+        {% endif %}
+        {% if styling_request.generated_image %}
+            <img class="generated-outfit-image" src="{{ styling_request.generated_image.url }}" alt="Generated outfit visual">
+        {% elif styling_request.image_error_message %}
+            <p class="muted">Image generation was skipped: {{ styling_request.image_error_message }}</p>
+        {% else %}
+            <p class="muted">No generated image for this request.</p>
+        {% endif %}
+        {% if styling_request.image_model %}
+            <p class="generated-image-model"><strong>Image model:</strong> {{ styling_request.image_model }}</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Detected items</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Label</th>
+                <th>Category</th>
+                <th>Colors</th>
+                <th>Confidence</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in result.detected_items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.label }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.colors|join:", " }}</td>
+                    <td>{{ item.confidence }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Outfits</h2>
+        <div class="outfit-grid">
+            {% for outfit in outfit_cards %}
+            <article class="outfit-card{% if outfit.is_generated_source %} outfit-card--selected{% endif %}">
+                <div class="outfit-card-header">
+                    <span class="outfit-badge">{{ outfit.option_label }}</span>
+                    <span class="outfit-badge outfit-badge--accent">{{ outfit.variant_label }}</span>
+                    {% if outfit.is_generated_source %}
+                        <span class="outfit-badge outfit-badge--selected">Used for generated image</span>
+                    {% endif %}
+                </div>
+                <h3>{{ outfit.title }}</h3>
+                <p><strong>Why:</strong> {{ outfit.why_it_works }}</p>
+                <p><strong>Fit notes:</strong> {{ outfit.fit_notes }}</p>
+                <p><strong>Color notes:</strong> {{ outfit.color_notes }}</p>
+                <ul>
+                    {% for item in outfit.items %}
+                        <li>{{ item.detected_item_id }} ({{ item.role }})</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Items to buy</h2>
+        {% if to_buy_with_links %}
+            <ul>
+                {% for item in to_buy_with_links %}
+                    <li>
+                        <strong>{{ item.name }}</strong> ({{ item.priority }})<br>
+                        {{ item.why_needed }}<br>
+                        <a href="{{ item.google_search_url }}" target="_blank" rel="noopener noreferrer">Search on Google</a>
+                        <span class="muted">({{ item.google_query }})</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No extra items needed.</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Advice</h2>
+        <h3>Style</h3>
+        <ul>
+            {% for entry in result.advice.style %}
+                <li>{{ entry }}</li>
+            {% endfor %}
+        </ul>
+        <h3>Care</h3>
+        <ul>
+            {% for entry in result.advice.care %}
+                <li>{{ entry }}</li>
+            {% endfor %}
+        </ul>
+        <h3>Impression</h3>
+        <ul>
+            {% for entry in result.advice.impression %}
+                <li>{{ entry }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+{% endblock %}

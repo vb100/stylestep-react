@@ -1,0 +1,17 @@
+User context:
+- Season: $season
+- Occasion: $occasion
+- Preferred style: $style
+- Additional info: $additional_info
+
+Task:
+1) Detect key items visible in the image.
+2) Create 3 outfit options: safe, bold, creative.
+3) Keep recommendations practical for the selected season and occasion.
+4) Keep the outfit suggestions faithful to the visible garments in the photo, especially garment type, dominant color, and clear pattern details.
+5) If a replacement or extra item is needed, add it to to_buy instead of changing a detected item into something else.
+6) For missing items, add to to_buy with realistic google_query terms.
+7) Add concise style, care, and impression advice.
+8) All text must be in simple, grammatically correct Lithuanian.
+
+Return JSON only, using the required schema and key names exactly.

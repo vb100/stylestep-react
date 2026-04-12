@@ -1,0 +1,22 @@
+Generate one realistic outfit concept image based on this styling analysis and the provided reference clothing photo.
+
+Important constraints:
+- Keep the image practical and wearable.
+- Use a neutral studio background.
+- Show a full-body mannequin or lookbook-style composition without a real identifiable person.
+- Match the selected season, occasion, and style.
+- Prioritize the selected outfit items and include "to_buy" additions only when needed.
+- Treat the uploaded clothing photo as the source of truth for garments the user already owns.
+- If the selected outfit uses a detected item, preserve that item's garment type, dominant color, pattern, material direction, and overall silhouette as closely as possible.
+- Do not recolor, replace, restyle, or swap a detected garment unless that exact replacement is explicitly listed in "to_buy".
+- If an extra item from "to_buy" is added, keep the detected garments unchanged and only add the missing piece around them.
+- Prefer showing the detected garments clearly and faithfully rather than making the look more fashionable by changing them.
+- Avoid logos and trademark-heavy branding.
+
+Context:
+- Season: $season
+- Occasion: $occasion
+- Style: $style
+- Detected items JSON: $detected_items_json
+- Selected outfit JSON: $selected_outfit_json
+- To buy JSON: $to_buy_json

@@ -1,0 +1,13 @@
+The previous output is invalid for the required schema.
+Fix it and return valid JSON only.
+Do not add markdown or explanations.
+Keep the same intent and content quality.
+Ensure all outfits item references point to existing detected item ids.
+All text must be in simple, grammatically correct Lithuanian.
+If the invalid JSON cannot be repaired directly, regenerate a fresh full JSON object that matches the schema exactly.
+
+Validation error:
+$validation_error
+
+Invalid JSON:
+$invalid_json

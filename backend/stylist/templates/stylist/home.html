@@ -1,0 +1,76 @@
+{% extends 'stylist/base.html' %}
+
+{% block title %}New Request | AI aprangos asistentas{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Upload your clothing photo</h1>
+    <p class="muted">Submit one photo and get 3 outfit options: safe, bold, and creative.</p>
+
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <label>
+            {{ form.image_original.label }}
+            {{ form.image_original }}
+            {{ form.image_original.errors }}
+        </label>
+        <div id="image-preview-wrap" class="image-preview-wrap" hidden>
+            <p class="muted">Selected image preview:</p>
+            <img id="image-preview" class="image-preview" alt="Selected clothing image preview">
+        </div>
+        <label>
+            {{ form.season.label }}
+            {{ form.season }}
+            {{ form.season.errors }}
+        </label>
+        <label>
+            {{ form.occasion.label }}
+            {{ form.occasion }}
+            {{ form.occasion.errors }}
+        </label>
+        <label>
+            {{ form.style.label }}
+            {{ form.style }}
+            {{ form.style.errors }}
+        </label>
+        <label>
+            {{ form.additional_info.label }}
+            {{ form.additional_info }}
+            {{ form.additional_info.errors }}
+        </label>
+
+        <button type="submit">Analyze Outfit</button>
+    </form>
+</section>
+
+<script>
+    (function () {
+        const fileInput = document.getElementById("id_image_original");
+        const previewWrap = document.getElementById("image-preview-wrap");
+        const previewImg = document.getElementById("image-preview");
+        if (!fileInput || !previewWrap || !previewImg) {
+            return;
+        }
+
+        fileInput.addEventListener("change", function () {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) {
+                previewImg.removeAttribute("src");
+                previewWrap.hidden = true;
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                previewImg.src = event.target && event.target.result ? event.target.result : "";
+                previewWrap.hidden = !previewImg.src;
+            };
+            reader.readAsDataURL(file);
+        });
+    })();
+</script>
+{% endblock %}
