@@ -53,6 +53,7 @@ export function Layout() {
               <span className="brand-link__text">
                 <span className="brand-link__title">StyleStep</span>
                 <span className="brand-link__subtitle">Tavo asmeninis stilistas</span>
+                <span className="brand-link__meta">Druskininkų „Atgimimo&quot; mokykla | MMB</span>
               </span>
             </Link>
           </div>
