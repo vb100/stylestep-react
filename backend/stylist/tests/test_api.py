@@ -27,6 +27,12 @@ class ApiFlowTests(TestCase):
         self.assertEqual(payload["app_name"], "StyleStep | Tavo asmeninis stilistas")
         season_codes = [season["code"] for season in payload["reference_data"]["seasons"]]
         self.assertIn("summer", season_codes)
+        season_by_code = {season["code"]: season["name"] for season in payload["reference_data"]["seasons"]}
+        occasion_by_code = {item["code"]: item["name"] for item in payload["reference_data"]["occasions"]}
+        style_by_code = {item["code"]: item["name"] for item in payload["reference_data"]["styles"]}
+        self.assertEqual(season_by_code["summer"], "Vasara")
+        self.assertEqual(occasion_by_code["office"], "Biuras")
+        self.assertEqual(style_by_code["classic"], "Klasikinis")
 
     def test_create_request_queues_and_optimizes_image(self):
         response = self.client.post(
