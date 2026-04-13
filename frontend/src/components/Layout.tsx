@@ -59,9 +59,6 @@ export function Layout() {
           </div>
 
           <div className="header-actions">
-            <Link className="header-pill" to="/">
-              Nauja pradžia
-            </Link>
             <div className="header-palette" aria-hidden="true">
               <span className="header-palette__pill header-palette__pill--sage">
                 <AccentGlyph icon="hanger" />
