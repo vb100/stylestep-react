@@ -1004,6 +1004,9 @@ label {
   color: var(--ink-strong);
   font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .badge--accent {
@@ -1095,7 +1098,12 @@ label {
 .outfit-card__header {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.45rem;
+}
+
+.outfit-card__header .badge {
+  margin-right: 0;
 }
 
 .outfit-card h3 {
