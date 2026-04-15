@@ -1,8 +1,10 @@
-import type { AdviceBlock, ToBuyItem } from "../lib/types";
+import type { AdviceBlock, ToBuyItem, ViewerPlan } from "../lib/types";
+import { PremiumBadge, PremiumLock } from "./PremiumElements";
 
 interface AdvicePanelProps {
   advice: AdviceBlock;
   toBuy: ToBuyItem[];
+  viewerPlan: ViewerPlan;
 }
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -14,7 +16,31 @@ function formatPriority(priority: string): string {
   return PRIORITY_LABELS[priority] ?? "Papildomai";
 }
 
-export function AdvicePanel({ advice, toBuy }: AdvicePanelProps) {
+export function AdvicePanel({ advice, toBuy, viewerPlan }: AdvicePanelProps) {
+  const adviceSections = [
+    {
+      key: "style",
+      title: "Stilius",
+      items: advice.style,
+      locked: false,
+      message: "",
+    },
+    {
+      key: "care",
+      title: "Priežiūra",
+      items: advice.care,
+      locked: viewerPlan === "free",
+      message: "Drabužių priežiūros patarimai pilnai matomi su Premium planu.",
+    },
+    {
+      key: "impression",
+      title: "Įspūdis",
+      items: advice.impression,
+      locked: viewerPlan === "free",
+      message: "Pilnas įspūdžio aprašymas skirtas prenumeratoriams.",
+    },
+  ];
+
   return (
     <>
       <section className="panel">
@@ -55,30 +81,25 @@ export function AdvicePanel({ advice, toBuy }: AdvicePanelProps) {
         </div>
 
         <div className="advice-grid">
-          <div className="advice-card">
-            <h3>Stilius</h3>
-            <ul>
-              {advice.style.map((entry) => (
-                <li key={`style-${entry}`}>{entry}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="advice-card">
-            <h3>Priežiūra</h3>
-            <ul>
-              {advice.care.map((entry) => (
-                <li key={`care-${entry}`}>{entry}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="advice-card">
-            <h3>Įspūdis</h3>
-            <ul>
-              {advice.impression.map((entry) => (
-                <li key={`impression-${entry}`}>{entry}</li>
-              ))}
-            </ul>
-          </div>
+          {adviceSections.map((section) => (
+            <div key={section.key} className={`advice-card${section.locked ? " advice-card--locked" : ""}`}>
+              <div className="advice-card__header">
+                <h3>{section.title}</h3>
+                {section.locked ? <PremiumBadge /> : null}
+              </div>
+              <PremiumLock
+                locked={section.locked}
+                message={section.message}
+                cta="Atrakink su Premium"
+              >
+                <ul>
+                  {section.items.map((entry) => (
+                    <li key={`${section.key}-${entry}`}>{entry}</li>
+                  ))}
+                </ul>
+              </PremiumLock>
+            </div>
+          ))}
         </div>
       </section>
     </>

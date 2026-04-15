@@ -1,46 +1,17 @@
+import { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
+import type { ViewerPlan } from "../lib/types";
+import { CrownIcon } from "./PremiumElements";
 import brandLogo from "../../logo/logo.png";
 
-type AccentIcon = "hanger" | "spark" | "bag";
-
-function AccentGlyph({ icon }: { icon: AccentIcon }) {
-  const commonProps = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    strokeWidth: 1.7,
-  };
-
-  switch (icon) {
-    case "hanger":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M12 6.4a1.8 1.8 0 1 0-1.6-2.7" />
-          <path {...commonProps} d="M10.4 3.7l1.7 2.3" />
-          <path {...commonProps} d="M12.1 6l-5.4 4.2a1.2 1.2 0 0 0 .8 2.2h9a1.2 1.2 0 0 0 .8-2.2z" />
-        </svg>
-      );
-    case "spark":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M12 4l1.1 3.5L16.6 8 13 9.1 12 12.7 11 9.1 7.4 8l3.5-1.1z" />
-          <path {...commonProps} d="M18 13.7l.6 1.8 1.8.6-1.8.6-.6 1.8-.6-1.8-1.8-.6 1.8-.6z" />
-        </svg>
-      );
-    case "bag":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M7.2 9.2h9.6l-.8 8a1 1 0 0 1-1 .9H9a1 1 0 0 1-1-.9z" />
-          <path {...commonProps} d="M9.4 10V8.7a2.6 2.6 0 0 1 5.2 0V10" />
-        </svg>
-      );
-    default:
-      return null;
-  }
+export interface LayoutOutletContext {
+  viewerPlan: ViewerPlan;
+  setViewerPlan: (plan: ViewerPlan) => void;
 }
 
 export function Layout() {
+  const [viewerPlan, setViewerPlan] = useState<ViewerPlan>("free");
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -59,23 +30,32 @@ export function Layout() {
           </div>
 
           <div className="header-actions">
-            <div className="header-palette" aria-hidden="true">
-              <span className="header-palette__pill header-palette__pill--sage">
-                <AccentGlyph icon="hanger" />
-              </span>
-              <span className="header-palette__pill header-palette__pill--rose">
-                <AccentGlyph icon="spark" />
-              </span>
-              <span className="header-palette__pill header-palette__pill--sand">
-                <AccentGlyph icon="bag" />
-              </span>
+            <span className="header-plan-label">Peržiūros planas</span>
+            <div className="plan-switcher" role="group" aria-label="Peržiūros plano pasirinkimas">
+              <button
+                type="button"
+                className={`plan-switcher__button${viewerPlan === "free" ? " plan-switcher__button--active" : ""}`}
+                onClick={() => setViewerPlan("free")}
+                aria-pressed={viewerPlan === "free"}
+              >
+                Nemokamas
+              </button>
+              <button
+                type="button"
+                className={`plan-switcher__button plan-switcher__button--premium${viewerPlan === "premium" ? " plan-switcher__button--active" : ""}`}
+                onClick={() => setViewerPlan("premium")}
+                aria-pressed={viewerPlan === "premium"}
+              >
+                <CrownIcon className="plan-switcher__icon" />
+                Prenumerata
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       <main className="page-shell">
-        <Outlet />
+        <Outlet context={{ viewerPlan, setViewerPlan }} />
       </main>
     </div>
   );

@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { fetchRequestDetail } from "../lib/api";
 import type { RequestDetailPayload } from "../lib/types";
 import { AdvicePanel } from "../components/AdvicePanel";
 import { DetectedItemsTable } from "../components/DetectedItemsTable";
 import { GeneratedImagePanel } from "../components/GeneratedImagePanel";
+import type { LayoutOutletContext } from "../components/Layout";
 import { OutfitCards } from "../components/OutfitCards";
 import { RequestStatusCard } from "../components/RequestStatusCard";
 
 export function ResultPage() {
   const navigate = useNavigate();
   const { requestId = "" } = useParams();
+  const { viewerPlan } = useOutletContext<LayoutOutletContext>();
   const [detail, setDetail] = useState<RequestDetailPayload | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -87,8 +89,12 @@ export function ResultPage() {
             generatedOutfit={detail.result.generated_outfit}
           />
           <DetectedItemsTable items={detail.result.detected_items} />
-          <OutfitCards outfits={detail.result.outfit_cards} detectedItems={detail.result.detected_items} />
-          <AdvicePanel advice={detail.result.advice} toBuy={detail.result.to_buy_with_links} />
+          <OutfitCards
+            outfits={detail.result.outfit_cards}
+            detectedItems={detail.result.detected_items}
+            viewerPlan={viewerPlan}
+          />
+          <AdvicePanel advice={detail.result.advice} toBuy={detail.result.to_buy_with_links} viewerPlan={viewerPlan} />
         </>
       )}
     </div>

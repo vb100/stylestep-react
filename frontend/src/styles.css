@@ -252,7 +252,7 @@ label {
 .header-actions {
   display: grid;
   justify-items: end;
-  gap: 0.8rem;
+  gap: 0.45rem;
 }
 
 .header-pill,
@@ -280,6 +280,68 @@ label {
   box-shadow: 0 18px 32px rgba(169, 146, 136, 0.18);
   border-color: rgba(216, 170, 157, 0.45);
   background: rgba(255, 255, 255, 0.92);
+}
+
+.header-plan-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(127, 108, 103, 0.76);
+  font-weight: 700;
+}
+
+.plan-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 24px rgba(169, 146, 136, 0.1);
+}
+
+.plan-switcher__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  border: none;
+  min-width: 7.2rem;
+  padding: 0.78rem 1rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.24s ease,
+    box-shadow 0.24s ease,
+    color 0.24s ease,
+    transform 0.24s ease;
+}
+
+.plan-switcher__button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--ink-strong);
+}
+
+.plan-switcher__button--active {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-strong);
+  box-shadow: 0 8px 18px rgba(169, 146, 136, 0.14);
+}
+
+.plan-switcher__button--premium.plan-switcher__button--active {
+  background: linear-gradient(135deg, rgba(233, 197, 187, 0.44) 0%, rgba(216, 193, 165, 0.38) 100%);
+}
+
+.plan-switcher__icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .header-palette {
@@ -933,6 +995,7 @@ label {
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.38rem;
   margin-right: 0.45rem;
   padding: 0.32rem 0.7rem;
   border-radius: 999px;
@@ -951,6 +1014,22 @@ label {
 .badge--selected {
   background: rgba(165, 164, 137, 0.24);
   color: #7f8665;
+}
+
+.badge__icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.badge--premium {
+  background: linear-gradient(135deg, rgba(233, 197, 187, 0.34) 0%, rgba(216, 193, 165, 0.28) 100%);
+  color: #9a7368;
+  border-color: rgba(216, 170, 157, 0.3);
+}
+
+.badge--premium-compact {
+  margin-right: 0;
+  width: fit-content;
 }
 
 .table-wrap {
@@ -1038,6 +1117,68 @@ label {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.premium-lock {
+  position: relative;
+}
+
+.premium-lock--active {
+  min-height: 17rem;
+}
+
+.premium-lock--active .premium-lock__content {
+  filter: blur(4px);
+  opacity: 0.92;
+  pointer-events: none;
+  user-select: none;
+}
+
+.premium-lock__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.premium-lock__panel {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  max-width: 15rem;
+  padding: 0.95rem 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 248, 242, 0.76);
+  box-shadow:
+    0 18px 30px rgba(169, 146, 136, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.premium-lock__panel p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--ink-strong);
+}
+
+.premium-lock__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.52rem 0.82rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(216, 170, 157, 0.28);
+  color: #9a7368;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .outfit-chip {
@@ -1132,6 +1273,17 @@ label {
   margin-top: 0;
   margin-bottom: 0.7rem;
   color: var(--ink-strong);
+}
+
+.advice-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.advice-card__header h3 {
+  margin-bottom: 0;
 }
 
 .advice-card ul {

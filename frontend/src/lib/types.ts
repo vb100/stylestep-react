@@ -1,4 +1,5 @@
 export type RequestStatus = "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+export type ViewerPlan = "free" | "premium";
 
 export interface ReferenceOption {
   id: number;
