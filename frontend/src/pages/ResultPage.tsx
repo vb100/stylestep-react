@@ -70,6 +70,8 @@ export function ResultPage() {
     return <section className="panel">Paruošiame tavo rezultatų vaizdą...</section>;
   }
 
+  const shouldShowStatusCard = detail.status !== "DONE" || !detail.image_ready;
+
   return (
     <div className="content-stack">
       <section className="panel">
@@ -93,7 +95,7 @@ export function ResultPage() {
         </div>
       </section>
 
-      <RequestStatusCard status={detail} />
+      {shouldShowStatusCard ? <RequestStatusCard status={detail} /> : null}
 
       {detail.status === "FAILED" || !detail.result ? (
         <section className="panel">
