@@ -19,26 +19,46 @@ export function ResultPage() {
 
   useEffect(() => {
     let isMounted = true;
-    fetchRequestDetail(requestId)
-      .then((payload) => {
+    let intervalId: number | null = null;
+
+    const loadDetail = async () => {
+      try {
+        const payload = await fetchRequestDetail(requestId);
         if (!isMounted) {
           return;
         }
         setDetail(payload);
         setErrorMessage("");
 
-        if (payload.status === "QUEUED" || payload.status === "RUNNING") {
+        if ((payload.status === "QUEUED" || payload.status === "RUNNING") && !payload.result_ready) {
           navigate(`/requests/${requestId}`, { replace: true });
+          return;
         }
-      })
-      .catch(() => {
+
+        const shouldKeepPolling =
+          payload.status === "RUNNING" && (payload.image_pending || (!payload.image_ready && !payload.image_error_message));
+
+        if (!shouldKeepPolling && intervalId !== null) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+        }
+      } catch {
         if (isMounted) {
           setErrorMessage("Nepavyko įkelti rezultatų. Atnaujink puslapį ir bandyk dar kartą.");
         }
-      });
+      }
+    };
+
+    void loadDetail();
+    intervalId = window.setInterval(() => {
+      void loadDetail();
+    }, 4000);
 
     return () => {
       isMounted = false;
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
     };
   }, [navigate, requestId]);
 
@@ -87,6 +107,7 @@ export function ResultPage() {
             generatedImageUrl={detail.generated_image_url}
             imageErrorMessage={detail.image_error_message}
             generatedOutfit={detail.result.generated_outfit}
+            isLoading={detail.image_pending}
           />
           <DetectedItemsTable items={detail.result.detected_items} />
           <OutfitCards

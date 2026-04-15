@@ -289,6 +289,15 @@ def _error_mentions_parameter(exc: Exception, parameter: str) -> bool:
 
 
 SUPPORTED_IMAGE_SIZES = ("1024x1024", "1024x1536", "1536x1024", "auto")
+SUPPORTED_IMAGE_EDIT_MODELS = {"dall-e-2"}
+
+
+def _model_supports_image_edits(model: str) -> bool:
+    return str(model).strip().lower() in SUPPORTED_IMAGE_EDIT_MODELS
+
+
+def _model_supports_image_response_format(model: str) -> bool:
+    return str(model).strip().lower() not in {"gpt-image-1", "gpt-image-1-mini"}
 
 
 def _chat_completion_create_once(*, client: Any, payload: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
@@ -479,27 +488,34 @@ def _build_image_payload_attempts(
         seen_payload_signatures.add(signature)
         attempts.append(candidate)
 
-    _add_attempt({**base_payload, "response_format": "b64_json"})
+    use_response_format = _model_supports_image_response_format(model)
+
+    if use_response_format:
+        _add_attempt({**base_payload, "response_format": "b64_json"})
 
     if size and size not in SUPPORTED_IMAGE_SIZES:
         for fallback_size in ("1024x1024", "auto"):
             fallback_payload = dict(base_payload)
             fallback_payload["size"] = fallback_size
-            _add_attempt({**fallback_payload, "response_format": "b64_json"})
+            if use_response_format:
+                _add_attempt({**fallback_payload, "response_format": "b64_json"})
             _add_attempt(dict(fallback_payload))
 
             if "quality" in fallback_payload:
                 fallback_without_quality = {k: v for k, v in fallback_payload.items() if k != "quality"}
-                _add_attempt({**fallback_without_quality, "response_format": "b64_json"})
+                if use_response_format:
+                    _add_attempt({**fallback_without_quality, "response_format": "b64_json"})
                 _add_attempt(fallback_without_quality)
 
     if "quality" in base_payload:
         without_quality = {k: v for k, v in base_payload.items() if k != "quality"}
-        _add_attempt({**without_quality, "response_format": "b64_json"})
+        if use_response_format:
+            _add_attempt({**without_quality, "response_format": "b64_json"})
         _add_attempt(without_quality)
 
     _add_attempt(dict(base_payload))
-    _add_attempt({"model": model, "prompt": prompt, "n": 1, "response_format": "b64_json"})
+    if use_response_format:
+        _add_attempt({"model": model, "prompt": prompt, "n": 1, "response_format": "b64_json"})
     _add_attempt({"model": model, "prompt": prompt, "n": 1})
 
     return attempts
@@ -747,7 +763,7 @@ def request_outfit_image(
     if not _supports_images(client):
         raise OpenAIIntegrationError("OpenAI SDK client does not support image generation.")
 
-    if reference_image_bytes and _supports_image_edits(client):
+    if reference_image_bytes and _supports_image_edits(client) and _model_supports_image_edits(model):
         edit_attempts = _build_image_edit_attempts(
             model=model,
             prompt=prompt,

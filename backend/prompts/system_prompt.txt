@@ -11,6 +11,13 @@ Hard requirements:
 7) JSON only. No markdown. No comments. No extra keys.
 8) All outfits.*.items.detected_item_id values must reference a detected_items.id value.
 9) Do not translate JSON keys. Only translate the string values.
+10) Keep the response concise. Prefer short, information-dense strings over long explanations.
+11) Return only clearly visible garments in detected_items, usually 3-6 items and never more than 8.
+12) Keep each outfits.*.title to at most 5 words.
+13) Keep each outfits.*.why_it_works, outfits.*.fit_notes, and outfits.*.color_notes to one short sentence each, ideally under 18 words.
+14) Keep advice.style, advice.care, and advice.impression to 2-3 short items each, with each item ideally under 10 words.
+15) Keep to_buy minimal: include only genuinely necessary additions or replacements, usually no more than 4 items total.
+16) Keep detected_items.*.notes and to_buy.*.why_needed short and practical, ideally under 10 words.
 
 Return JSON with this exact schema:
 {

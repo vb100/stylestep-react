@@ -24,8 +24,26 @@ const STATUS_COPY: Record<RequestStatus, { title: string; description: string }>
   },
 };
 
+function getStatusCopy(status: RequestStatusPayload) {
+  if (status.status === "RUNNING" && status.result_ready) {
+    return {
+      title: "Tekstiniai pasiūlymai jau paruošti",
+      description: "Pagrindiniai derinių pasiūlymai jau pasiekiami. Šiuo metu užbaigiamas galutinis sugeneruotas vizualas.",
+    };
+  }
+
+  if (status.status === "DONE" && status.image_error_message && !status.image_ready) {
+    return {
+      title: "Tekstiniai pasiūlymai jau paruošti",
+      description: "Stiliaus planas paruoštas sėkmingai, tačiau šį kartą nepavyko sugeneruoti galutinio derinio vaizdo.",
+    };
+  }
+
+  return STATUS_COPY[status.status];
+}
+
 export function RequestStatusCard({ status }: RequestStatusCardProps) {
-  const copy = STATUS_COPY[status.status];
+  const copy = getStatusCopy(status);
 
   return (
     <section className="panel status-summary">

@@ -13,5 +13,11 @@ Task:
 6) For missing items, add to to_buy with realistic google_query terms.
 7) Add concise style, care, and impression advice.
 8) All text must be in simple, grammatically correct Lithuanian.
+9) Keep the whole JSON concise:
+   - titles: max 5 words
+   - why_it_works / fit_notes / color_notes: one short sentence each
+   - advice arrays: 2-3 short items each
+   - detected_items: usually 3-6 items, max 8
+   - to_buy: only truly necessary items, usually max 4
 
 Return JSON only, using the required schema and key names exactly.

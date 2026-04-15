@@ -180,8 +180,7 @@ class OpenAIClientParsingTests(SimpleTestCase):
         self.assertEqual(b64_image, "aGVsbG8=")
         self.assertEqual(model_name, "gpt-image-1")
         self.assertEqual(usage, {"total_tokens": 1})
-        self.assertEqual(fake_client.images.calls[0]["size"], "512x512")
-        self.assertEqual(fake_client.images.calls[1]["size"], "1024x1024")
+        self.assertEqual(fake_client.images.calls[0]["size"], "1024x1024")
 
     @override_settings(OPENAI_API_KEY="test-key")
     def test_request_outfit_image_prefers_reference_edit(self):
@@ -189,7 +188,7 @@ class OpenAIClientParsingTests(SimpleTestCase):
         with patch("stylist.openai_client._build_client", return_value=fake_client):
             b64_image, model_name, usage = request_outfit_image(
                 prompt="test prompt",
-                model="gpt-image-1",
+                model="dall-e-2",
                 size="1024x1024",
                 quality="low",
                 reference_image_bytes=b"fake-image-bytes",
@@ -204,13 +203,33 @@ class OpenAIClientParsingTests(SimpleTestCase):
         self.assertEqual(fake_client.images.calls, [])
 
     @override_settings(OPENAI_API_KEY="test-key")
-    def test_request_outfit_image_falls_back_to_generate_after_edit_failure(self):
+    def test_request_outfit_image_skips_reference_edit_for_gpt_image(self):
+        fake_client = _FakeClient()
+        with patch("stylist.openai_client._build_client", return_value=fake_client):
+            b64_image, model_name, usage = request_outfit_image(
+                prompt="test prompt",
+                model="gpt-image-1",
+                size="1024x1024",
+                quality="low",
+                reference_image_bytes=b"fake-image-bytes",
+                reference_image_filename="closet.jpg",
+            )
+
+        self.assertEqual(b64_image, "aGVsbG8=")
+        self.assertEqual(model_name, "gpt-image-1")
+        self.assertEqual(usage, {"total_tokens": 1})
+        self.assertEqual(fake_client.images.edit_calls, [])
+        self.assertEqual(len(fake_client.images.calls), 1)
+        self.assertNotIn("response_format", fake_client.images.calls[0])
+
+    @override_settings(OPENAI_API_KEY="test-key")
+    def test_request_outfit_image_falls_back_to_generate_after_edit_failure_for_supported_edit_model(self):
         fake_client = _FakeClient()
         fake_client.images = _FakeFailingEditImagesAPI()
         with patch("stylist.openai_client._build_client", return_value=fake_client):
             b64_image, model_name, usage = request_outfit_image(
                 prompt="test prompt",
-                model="gpt-image-1",
+                model="dall-e-2",
                 size="1024x1024",
                 quality="low",
                 reference_image_bytes=b"fake-image-bytes",

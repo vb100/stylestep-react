@@ -174,6 +174,17 @@ function buildProgressSnapshot(status: RequestStatusPayload, now: number): Progr
     };
   }
 
+  if (status.status === "RUNNING" && status.result_ready) {
+    return {
+      percent: status.image_pending ? 88 : 94,
+      title: "Tekstiniai pasiūlymai jau paruošti",
+      subtitle: status.image_pending
+        ? "Pagrindinis rezultatas jau parengtas. Dabar baigiamas sugeneruotas derinio vaizdas."
+        : "Pagrindinis rezultatas jau parengtas. Užbaigiami paskutiniai išsaugojimo veiksmai.",
+      steps: buildSteps("visual", ["received", "queued", "analysis", "styling"]),
+    };
+  }
+
   const runningPhase = getRunningPhase(runningElapsedSeconds);
   return {
     percent: runningPhase.percent,

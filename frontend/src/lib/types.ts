@@ -20,6 +20,9 @@ export interface BootstrapPayload {
 export interface RequestStatusPayload {
   id: string;
   status: RequestStatus;
+  result_ready: boolean;
+  image_ready: boolean;
+  image_pending: boolean;
   error_message: string;
   image_error_message: string;
   ai_latency_ms: number | null;

@@ -99,3 +99,33 @@ class WorkerFlowTests(TestCase):
                 self.assertEqual(styling_request.ai_model, "gpt-5-mini")
                 self.assertEqual(styling_request.image_model, "gpt-image-1")
                 self.assertTrue(bool(styling_request.result_json))
+
+    def test_process_next_styling_request_saves_text_result_before_image_stage(self):
+        with TemporaryDirectory() as temp_media_root:
+            with override_settings(MEDIA_ROOT=temp_media_root):
+                styling_request = StylingRequest.objects.create(
+                    season=self.season,
+                    occasion=self.occasion,
+                    style=self.style,
+                    additional_info="Please keep it polished.",
+                    image_original=build_uploaded_image(),
+                    status=StylingRequest.Status.QUEUED,
+                )
+
+                styling_request.image_optimized.save("optimized.jpg", ContentFile(b"fake-image"), save=True)
+
+                def fake_generate_outfit_image(*args, **kwargs):
+                    styling_request.refresh_from_db()
+                    self.assertEqual(styling_request.status, StylingRequest.Status.RUNNING)
+                    self.assertTrue(bool(styling_request.result_json))
+                    self.assertEqual(styling_request.ai_model, "gpt-5-mini")
+                    return ContentFile(b"fake-png"), "png", "gpt-image-1", {"images": 1}
+
+                with patch(
+                    "stylist.tasks.run_openai_styling_analysis",
+                    return_value=(build_valid_result_payload(), "gpt-5-mini", {"total_tokens": 123}),
+                ), patch(
+                    "stylist.tasks.generate_outfit_image",
+                    side_effect=fake_generate_outfit_image,
+                ):
+                    process_next_styling_request()

@@ -23,7 +23,7 @@ export function SubmittedPage() {
         }
         setStatusPayload(payload);
         setErrorMessage("");
-        if (payload.status === "DONE") {
+        if (payload.result_ready || payload.status === "DONE") {
           navigate(`/requests/${requestId}/result`, { replace: true });
         }
       } catch (error) {
@@ -49,8 +49,8 @@ export function SubmittedPage() {
       <section className="panel">
         <h1>Užklausa pateikta</h1>
         <p className="muted-text">
-          Sistema automatiškai tikrina eigą, kol užklausa bus pilnai apdorota. Kai rezultatas bus paruoštas,
-          šis puslapis atsidarys automatiškai.
+          Sistema automatiškai tikrina eigą. Kai tik tekstiniai pasiūlymai bus paruošti, šis puslapis automatiškai
+          atidarys rezultatą, o vizualas prireikus bus dar užbaigiamas tame pačiame lange.
         </p>
         <div className="action-row">
           <Link className="secondary-link" to="/">

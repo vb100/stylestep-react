@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.conf import settings
+
 from .models import Occasion, Season, StyleTag, StylingRequest
 from .schemas import StylingResult
 from .services import build_generated_outfit_metadata, build_google_search_url, build_outfit_cards
@@ -29,7 +31,7 @@ def serialize_reference_data() -> dict[str, Any]:
 
 
 def _build_result_payload(styling_request: StylingRequest) -> dict[str, Any] | None:
-    if styling_request.status != StylingRequest.Status.DONE or not styling_request.result_json:
+    if not styling_request.result_json:
         return None
 
     validated = StylingResult.model_validate(styling_request.result_json)
@@ -52,9 +54,21 @@ def _build_result_payload(styling_request: StylingRequest) -> dict[str, Any] | N
 
 
 def serialize_request_status(styling_request: StylingRequest) -> dict[str, Any]:
+    result_ready = bool(styling_request.result_json) and styling_request.status != StylingRequest.Status.FAILED
+    image_ready = bool(styling_request.generated_image)
+    image_pending = (
+        result_ready
+        and settings.OPENAI_ENABLE_OUTFIT_IMAGE
+        and styling_request.status == StylingRequest.Status.RUNNING
+        and not image_ready
+        and not styling_request.image_error_message
+    )
     return {
         "id": str(styling_request.id),
         "status": styling_request.status,
+        "result_ready": result_ready,
+        "image_ready": image_ready,
+        "image_pending": image_pending,
         "error_message": styling_request.error_message,
         "image_error_message": styling_request.image_error_message,
         "ai_latency_ms": styling_request.ai_latency_ms,

@@ -57,13 +57,41 @@ def process_styling_request(request_id: str) -> None:
     styling_request.save(update_fields=["generated_image", "image_error_message", "updated_at"])
 
     try:
+        analysis_start_ts = monotonic()
+        logger.info("request_id=%s stage=analysis status=RUNNING", request_id)
         result_json, model_name, usage = run_openai_styling_analysis(styling_request)
+        analysis_latency_ms = int((monotonic() - analysis_start_ts) * 1000)
+        logger.info("request_id=%s stage=analysis status=DONE latency_ms=%s", request_id, analysis_latency_ms)
         image_model = ""
         image_latency_ms = None
         image_error_message = ""
 
+        with transaction.atomic():
+            styling_request.result_json = result_json
+            styling_request.error_message = ""
+            styling_request.ai_model = model_name
+            styling_request.ai_usage = usage
+            styling_request.ai_latency_ms = analysis_latency_ms
+            styling_request.image_model = ""
+            styling_request.image_latency_ms = None
+            styling_request.image_error_message = ""
+            styling_request.save(
+                update_fields=[
+                    "result_json",
+                    "error_message",
+                    "ai_model",
+                    "ai_usage",
+                    "ai_latency_ms",
+                    "image_model",
+                    "image_latency_ms",
+                    "image_error_message",
+                    "updated_at",
+                ]
+            )
+
         if settings.OPENAI_ENABLE_OUTFIT_IMAGE:
             image_start_ts = monotonic()
+            logger.info("request_id=%s stage=image status=RUNNING", request_id)
             try:
                 image_content, image_extension, image_model_name, image_usage = generate_outfit_image(
                     styling_request=styling_request,
@@ -78,6 +106,7 @@ def process_styling_request(request_id: str) -> None:
                 image_error_message = str(image_exc)[:2000]
                 logger.warning("request_id=%s outfit image generation skipped: %s", request_id, image_error_message)
             image_latency_ms = int((monotonic() - image_start_ts) * 1000)
+            logger.info("request_id=%s stage=image status=DONE latency_ms=%s", request_id, image_latency_ms)
 
         latency_ms = int((monotonic() - start_ts) * 1000)
         with transaction.atomic():
