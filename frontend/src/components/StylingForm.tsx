@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
 import type { ReferenceOption } from "../lib/types";
@@ -138,10 +138,51 @@ export function StylingForm({
   errorMessage,
   previewUrl,
 }: StylingFormProps) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const hasReferenceData = useMemo(
     () => seasons.length > 0 && occasions.length > 0 && styles.length > 0,
     [occasions.length, seasons.length, styles.length],
   );
+  const trimmedAdditionalInfo = additionalInfo.trim();
+  const hasAdditionalInfo = trimmedAdditionalInfo.length > 0;
+  const hasMinimumAdditionalInfoLength = trimmedAdditionalInfo.length >= 10;
+  const remainingCharacters = Math.max(0, 10 - trimmedAdditionalInfo.length);
+  const shouldShowAdditionalInfoHelper = hasAdditionalInfo && !hasMinimumAdditionalInfoLength;
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = "0px";
+    const nextHeight = hasAdditionalInfo
+      ? Math.min(Math.max(textarea.scrollHeight, 150), 220)
+      : 56;
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY = hasAdditionalInfo && textarea.scrollHeight > 220 ? "auto" : "hidden";
+  }, [additionalInfo, hasAdditionalInfo]);
+
+  const handleAdditionalInfoChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    event.currentTarget.setCustomValidity("");
+    setAdditionalInfo(event.currentTarget.value);
+  };
+
+  const handleAdditionalInfoInvalid = (event: FormEvent<HTMLTextAreaElement>) => {
+    const value = event.currentTarget.value.trim();
+    if (!value) {
+      event.currentTarget.setCustomValidity("Kas dar aktualu Tavo stiliui?");
+      return;
+    }
+
+    if (value.length < 10) {
+      event.currentTarget.setCustomValidity("Papildoma pastaba turi būti bent 10 simbolių.");
+      return;
+    }
+
+    event.currentTarget.setCustomValidity("");
+  };
 
   return (
     <section className="panel panel--form">
@@ -171,7 +212,6 @@ export function StylingForm({
         </div>
 
         <div className={`preview-card preview-card--hero${previewUrl ? "" : " preview-card--empty"}`}>
-          <span className="preview-card__label">Tavo pasirinktas įkvėpimas</span>
           {previewUrl ? (
             <img className="preview-card__image" src={previewUrl} alt="Įkelta drabužių nuotrauka" />
           ) : (
@@ -246,31 +286,52 @@ export function StylingForm({
           </label>
         </div>
 
-        <label className="field-card">
-          <span className="field-label">
+        <div className={`field-card field-card--note${hasAdditionalInfo ? " field-card--note-expanded" : ""}`}>
+          <label className="field-label" htmlFor="additional_info">
             <span className="field-icon" aria-hidden="true">
               <UiGlyph icon="note" />
             </span>
             Papildoma pastaba
-          </span>
-          <textarea
-            name="additional_info"
-            placeholder="Pvz.: norisi daugiau šviesių tonų, patogaus silueto ir lengvai priderinamų detalių."
-            rows={5}
-          />
-          <span className="field-note">Šis laukas neprivalomas, bet padeda pasiūlymus pritaikyti tiksliau.</span>
-        </label>
+          </label>
+          <div className={`note-composer${hasAdditionalInfo ? " note-composer--expanded" : ""}`}>
+            <textarea
+              ref={textareaRef}
+              id="additional_info"
+              className={`note-composer__textarea${hasAdditionalInfo ? " note-composer__textarea--expanded" : ""}`}
+              name="additional_info"
+              placeholder="Kas dar aktualu Tavo stiliui?"
+              required
+              minLength={10}
+              rows={1}
+              value={additionalInfo}
+              onChange={handleAdditionalInfoChange}
+              onInvalid={handleAdditionalInfoInvalid}
+              aria-describedby={shouldShowAdditionalInfoHelper ? "additional_info_note" : undefined}
+            />
+
+            {hasAdditionalInfo ? (
+              <div className="note-composer__actions">
+                <button
+                  className="primary-button primary-button--inline note-composer__submit"
+                  disabled={isSubmitting || !hasReferenceData || !hasMinimumAdditionalInfoLength}
+                  type="submit"
+                >
+                  <span className="primary-button__icon" aria-hidden="true">
+                    <UiGlyph icon="arrow" />
+                  </span>
+                  {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
+                </button>
+              </div>
+            ) : null}
+          </div>
+          {shouldShowAdditionalInfoHelper ? (
+            <span className="field-note" id="additional_info_note">
+              Įrašyk dar bent {remainingCharacters} simbolių.
+            </span>
+          ) : null}
+        </div>
 
         {errorMessage ? <div className="soft-alert">{errorMessage}</div> : null}
-
-        <div className="submit-row">
-          <button className="primary-button" disabled={isSubmitting || !hasReferenceData} type="submit">
-            <span className="primary-button__icon" aria-hidden="true">
-              <UiGlyph icon="arrow" />
-            </span>
-            {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
-          </button>
-        </div>
       </form>
     </section>
   );
