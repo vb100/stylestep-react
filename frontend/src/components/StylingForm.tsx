@@ -224,8 +224,7 @@ export function StylingForm({
     <section className="panel panel--form">
       <div className="hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow">Subtilus stiliaus planas</span>
-          <h1>Vienas vaizdas, trys deriniai ir aiški kryptis tavo garderobui.</h1>
+          <h1>Susikurk savo aprangos stilių, gauk derinius ir eksperimentuok!</h1>
           <p className="hero-copy__lead">
             <TypewriterText
               durationMs={2000}
