@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, DragEvent, FormEvent } from "react";
 
 import type { ReferenceOption } from "../lib/types";
 import { TypewriterText } from "./TypewriterText";
@@ -10,13 +10,14 @@ interface StylingFormProps {
   occasions: ReferenceOption[];
   styles: ReferenceOption[];
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileSelect: (file: File | null) => void;
   isSubmitting: boolean;
   errorMessage: string;
+  uploadErrorMessage: string;
   previewUrl: string | null;
 }
 
-type UiIcon = "image" | "season" | "occasion" | "style" | "note" | "spark" | "bag" | "hanger" | "arrow";
+type UiIcon = "image" | "season" | "occasion" | "style" | "note" | "spark" | "bag" | "hanger" | "arrow" | "arrowUp";
 
 function UiGlyph({ icon }: { icon: UiIcon }) {
   const commonProps = {
@@ -94,6 +95,13 @@ function UiGlyph({ icon }: { icon: UiIcon }) {
           <path {...commonProps} d="M13 7l5 5-5 5" />
         </svg>
       );
+    case "arrowUp":
+      return (
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path {...commonProps} d="M12 18V6" />
+          <path {...commonProps} d="M7 11l5-5 5 5" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -134,14 +142,17 @@ export function StylingForm({
   occasions,
   styles,
   onSubmit,
-  onFileChange,
+  onFileSelect,
   isSubmitting,
   errorMessage,
+  uploadErrorMessage,
   previewUrl,
 }: StylingFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const demoVideoRef = useRef<HTMLVideoElement | null>(null);
   const demoReplayTimeoutRef = useRef<number | null>(null);
+  const [isDropActive, setIsDropActive] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const hasReferenceData = useMemo(
     () => seasons.length > 0 && occasions.length > 0 && styles.length > 0,
@@ -220,6 +231,42 @@ export function StylingForm({
     }, 3000);
   };
 
+  const handleMediaAreaClick = () => {
+    const input = imageInputRef.current;
+    if (!input) {
+      return;
+    }
+
+    input.value = "";
+    input.click();
+  };
+
+  const handleHiddenInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onFileSelect(event.target.files?.[0] ?? null);
+  };
+
+  const handleDropZoneDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsDropActive(true);
+  };
+
+  const handleDropZoneDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      return;
+    }
+
+    setIsDropActive(false);
+  };
+
+  const handleDropZoneDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDropActive(false);
+    onFileSelect(event.dataTransfer.files?.[0] ?? null);
+  };
+
+  const uploadHintText = previewUrl ? "Paspausk, jei nori pakeisti nuotrauką" : "Įkelk rūbų nuotraukas čia!";
+
   return (
     <section className="panel panel--form">
       <div className="hero-grid">
@@ -246,40 +293,58 @@ export function StylingForm({
           </div>
         </div>
 
-        <div className={`preview-card preview-card--hero${previewUrl ? "" : " preview-card--empty"}`}>
-          {previewUrl ? (
-            <img className="preview-card__image" src={previewUrl} alt="Įkelta drabužių nuotrauka" />
-          ) : (
-            <video
-              ref={demoVideoRef}
-              className="preview-card__image preview-card__video"
-              autoPlay
-              muted
-              onEnded={handleDemoPreviewEnded}
-              playsInline
-              preload="metadata"
-              aria-label="Trumpa demonstracija, kaip naudotis StyleStep"
-            >
-              <source src={demoPreviewVideo} type="video/webm" />
-            </video>
-          )}
+        <div
+          className={`preview-card preview-card--hero${previewUrl ? "" : " preview-card--empty"}${isDropActive ? " preview-card--drop-active" : ""}`}
+          onDragLeave={handleDropZoneDragLeave}
+          onDragOver={handleDropZoneDragOver}
+          onDrop={handleDropZoneDrop}
+        >
+          <input
+            ref={imageInputRef}
+            className="visually-hidden"
+            accept=".jpg,.jpeg,.png,.webp"
+            name="image_original"
+            onChange={handleHiddenInputChange}
+            type="file"
+          />
+
+          <button
+            className="preview-card__media-button"
+            type="button"
+            onClick={handleMediaAreaClick}
+            aria-label={previewUrl ? "Pakeisti drabužių nuotrauką" : "Įkelti drabužių nuotrauką"}
+          >
+            {previewUrl ? (
+              <img className="preview-card__image" src={previewUrl} alt="Įkelta drabužių nuotrauka" />
+            ) : (
+              <video
+                ref={demoVideoRef}
+                className="preview-card__image preview-card__video"
+                autoPlay
+                muted
+                onEnded={handleDemoPreviewEnded}
+                playsInline
+                preload="metadata"
+                aria-label="Trumpa demonstracija, kaip naudotis StyleStep"
+              >
+                <source src={demoPreviewVideo} type="video/webm" />
+              </video>
+            )}
+          </button>
+
+          <div className="preview-card__upload-meta">
+            <span className="preview-card__upload-hint">
+              <span className="preview-card__upload-icon" aria-hidden="true">
+                <UiGlyph icon="arrowUp" />
+              </span>
+              {uploadHintText}
+            </span>
+            {uploadErrorMessage ? <span className="preview-card__upload-error">{uploadErrorMessage}</span> : null}
+          </div>
         </div>
       </div>
 
       <form className="form-grid" onSubmit={onSubmit}>
-        <div className="field-grid">
-          <label className="field-card field-card--upload">
-            <span className="field-label">
-              <span className="field-icon" aria-hidden="true">
-                <UiGlyph icon="image" />
-              </span>
-              Įkelk drabužių nuotrauką
-            </span>
-            <input accept=".jpg,.jpeg,.png,.webp" name="image_original" onChange={onFileChange} required type="file" />
-            <span className="field-note">Tinka JPG, PNG arba WEBP formatai. Rekomenduojama aiški, šviesi nuotrauka.</span>
-          </label>
-        </div>
-
         <div className="form-grid__inline">
           <label className="field-card">
             <span className="field-label">
