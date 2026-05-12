@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 
 import type { ReferenceOption } from "../lib/types";
 import { TypewriterText } from "./TypewriterText";
+import demoPreviewVideo from "../../assets/stylestep-demo-preview.webm";
 
 interface StylingFormProps {
   seasons: ReferenceOption[];
@@ -139,6 +140,8 @@ export function StylingForm({
   previewUrl,
 }: StylingFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const demoVideoRef = useRef<HTMLVideoElement | null>(null);
+  const demoReplayTimeoutRef = useRef<number | null>(null);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const hasReferenceData = useMemo(
     () => seasons.length > 0 && occasions.length > 0 && styles.length > 0,
@@ -164,6 +167,21 @@ export function StylingForm({
     textarea.style.overflowY = hasAdditionalInfo && textarea.scrollHeight > 220 ? "auto" : "hidden";
   }, [additionalInfo, hasAdditionalInfo]);
 
+  useEffect(() => {
+    return () => {
+      if (demoReplayTimeoutRef.current !== null) {
+        window.clearTimeout(demoReplayTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previewUrl && demoReplayTimeoutRef.current !== null) {
+      window.clearTimeout(demoReplayTimeoutRef.current);
+      demoReplayTimeoutRef.current = null;
+    }
+  }, [previewUrl]);
+
   const handleAdditionalInfoChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     event.currentTarget.setCustomValidity("");
     setAdditionalInfo(event.currentTarget.value);
@@ -182,6 +200,24 @@ export function StylingForm({
     }
 
     event.currentTarget.setCustomValidity("");
+  };
+
+  const handleDemoPreviewEnded = () => {
+    if (demoReplayTimeoutRef.current !== null) {
+      window.clearTimeout(demoReplayTimeoutRef.current);
+    }
+
+    demoReplayTimeoutRef.current = window.setTimeout(() => {
+      const video = demoVideoRef.current;
+      if (!video) {
+        demoReplayTimeoutRef.current = null;
+        return;
+      }
+
+      video.currentTime = 0;
+      void video.play().catch(() => {});
+      demoReplayTimeoutRef.current = null;
+    }, 3000);
   };
 
   return (
@@ -215,12 +251,18 @@ export function StylingForm({
           {previewUrl ? (
             <img className="preview-card__image" src={previewUrl} alt="Įkelta drabužių nuotrauka" />
           ) : (
-            <div className="preview-card__placeholder">
-              <span className="feature-card__icon" aria-hidden="true">
-                <UiGlyph icon="image" />
-              </span>
-              <p>Įkėlus nuotrauką, jos miniatiūra iš karto bus parodyta čia.</p>
-            </div>
+            <video
+              ref={demoVideoRef}
+              className="preview-card__image preview-card__video"
+              autoPlay
+              muted
+              onEnded={handleDemoPreviewEnded}
+              playsInline
+              preload="metadata"
+              aria-label="Trumpa demonstracija, kaip naudotis StyleStep"
+            >
+              <source src={demoPreviewVideo} type="video/webm" />
+            </video>
           )}
         </div>
       </div>

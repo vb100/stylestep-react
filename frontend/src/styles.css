@@ -573,6 +573,12 @@ label {
   box-shadow: 0 20px 42px rgba(169, 146, 136, 0.16);
 }
 
+.preview-card__video {
+  min-height: 320px;
+  background: rgba(255, 255, 255, 0.44);
+  object-fit: cover;
+}
+
 .preview-card__placeholder {
   min-height: 320px;
   display: grid;
