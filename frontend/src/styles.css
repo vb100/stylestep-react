@@ -736,6 +736,7 @@ label {
 
 .note-composer {
   position: relative;
+  min-height: 76px;
 }
 
 .note-composer--expanded {
@@ -743,12 +744,13 @@ label {
 }
 
 .note-composer__textarea {
-  min-height: 56px;
+  min-height: 76px;
   max-height: 220px;
   resize: none;
   overflow-y: hidden;
   border-radius: 24px;
   line-height: 1.6;
+  padding-right: 17.5rem;
   transition:
     height 0.2s ease,
     min-height 0.2s ease,
@@ -760,7 +762,6 @@ label {
 .note-composer__textarea--expanded {
   min-height: 150px;
   background: rgba(255, 255, 255, 0.9);
-  padding-right: 17.5rem;
   padding-bottom: 5.35rem;
 }
 
@@ -1610,7 +1611,7 @@ label {
     justify-items: flex-start;
   }
 
-  .note-composer__textarea--expanded {
+  .note-composer__textarea {
     padding-right: 1rem;
     padding-bottom: 5.9rem;
   }

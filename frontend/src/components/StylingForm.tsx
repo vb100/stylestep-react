@@ -173,7 +173,7 @@ export function StylingForm({
     textarea.style.height = "0px";
     const nextHeight = hasAdditionalInfo
       ? Math.min(Math.max(textarea.scrollHeight, 150), 220)
-      : 56;
+      : 76;
     textarea.style.height = `${nextHeight}px`;
     textarea.style.overflowY = hasAdditionalInfo && textarea.scrollHeight > 220 ? "auto" : "hidden";
   }, [additionalInfo, hasAdditionalInfo]);
@@ -415,20 +415,18 @@ export function StylingForm({
               aria-describedby={shouldShowAdditionalInfoHelper ? "additional_info_note" : undefined}
             />
 
-            {hasAdditionalInfo ? (
-              <div className="note-composer__actions">
-                <button
-                  className="primary-button primary-button--inline note-composer__submit"
-                  disabled={isSubmitting || !hasReferenceData || !hasMinimumAdditionalInfoLength}
-                  type="submit"
-                >
-                  <span className="primary-button__icon" aria-hidden="true">
-                    <UiGlyph icon="arrow" />
-                  </span>
-                  {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
-                </button>
-              </div>
-            ) : null}
+            <div className="note-composer__actions">
+              <button
+                className="primary-button primary-button--inline note-composer__submit"
+                disabled={isSubmitting || !hasReferenceData || !hasMinimumAdditionalInfoLength}
+                type="submit"
+              >
+                <span className="primary-button__icon" aria-hidden="true">
+                  <UiGlyph icon="arrow" />
+                </span>
+                {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
+              </button>
+            </div>
           </div>
           {shouldShowAdditionalInfoHelper ? (
             <span className="field-note" id="additional_info_note">
