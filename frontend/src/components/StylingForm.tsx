@@ -111,6 +111,7 @@ export function StylingForm({
   );
   const trimmedAdditionalInfo = additionalInfo.trim();
   const hasAdditionalInfo = trimmedAdditionalInfo.length > 0;
+  const shouldShowMobileSubmit = trimmedAdditionalInfo.length >= 5;
   const hasMinimumAdditionalInfoLength = trimmedAdditionalInfo.length >= 10;
   const remainingCharacters = Math.max(0, 10 - trimmedAdditionalInfo.length);
   const shouldShowAdditionalInfoHelper = hasAdditionalInfo && !hasMinimumAdditionalInfoLength;
@@ -350,7 +351,9 @@ export function StylingForm({
               aria-describedby={shouldShowAdditionalInfoHelper ? "additional_info_note" : undefined}
             />
 
-            <div className="note-composer__actions">
+            <div
+              className={`note-composer__actions${shouldShowMobileSubmit ? " note-composer__actions--mobile-visible" : ""}`}
+            >
               <button
                 className="primary-button primary-button--inline note-composer__submit"
                 disabled={isSubmitting || !hasReferenceData || !hasMinimumAdditionalInfoLength}
@@ -363,7 +366,7 @@ export function StylingForm({
                   {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
                 </span>
                 <span className="note-composer__submit-label note-composer__submit-label--mobile">
-                  {isSubmitting ? "Ruošiama..." : "Gauti"}
+                  {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
                 </span>
               </button>
             </div>
