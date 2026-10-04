@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, FormEvent } from "react";
 
 import type { ReferenceOption } from "../lib/types";
-import { TypewriterText } from "./TypewriterText";
 import demoPreviewVideo from "../../assets/stylestep-demo-preview.webm";
 
 interface StylingFormProps {
@@ -17,7 +16,7 @@ interface StylingFormProps {
   previewUrl: string | null;
 }
 
-type UiIcon = "image" | "season" | "occasion" | "style" | "note" | "spark" | "bag" | "hanger" | "arrow" | "arrowUp";
+type UiIcon = "season" | "occasion" | "style" | "note" | "arrow" | "arrowUp";
 
 function UiGlyph({ icon }: { icon: UiIcon }) {
   const commonProps = {
@@ -29,14 +28,6 @@ function UiGlyph({ icon }: { icon: UiIcon }) {
   };
 
   switch (icon) {
-    case "image":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <rect {...commonProps} x="4" y="5" width="16" height="14" rx="3" />
-          <circle {...commonProps} cx="9" cy="10" r="1.4" />
-          <path {...commonProps} d="M6.5 17l4.1-4.2 2.6 2.7 2.5-2.3L18.5 17" />
-        </svg>
-      );
     case "season":
       return (
         <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -64,28 +55,6 @@ function UiGlyph({ icon }: { icon: UiIcon }) {
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path {...commonProps} d="M7 5h10a2 2 0 0 1 2 2v10H9l-4 2V7a2 2 0 0 1 2-2z" />
           <path {...commonProps} d="M9 10h6M9 13h4" />
-        </svg>
-      );
-    case "spark":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M12 4l1.1 3.5L16.6 8 13 9.1 12 12.7 11 9.1 7.4 8l3.5-1.1z" />
-          <path {...commonProps} d="M6 15.7l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z" />
-        </svg>
-      );
-    case "bag":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M7.2 9.2h9.6l-.8 8a1 1 0 0 1-1 .9H9a1 1 0 0 1-1-.9z" />
-          <path {...commonProps} d="M9.4 10V8.7a2.6 2.6 0 0 1 5.2 0V10" />
-        </svg>
-      );
-    case "hanger":
-      return (
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path {...commonProps} d="M12 6.4a1.8 1.8 0 1 0-1.6-2.7" />
-          <path {...commonProps} d="M10.4 3.7l1.7 2.3" />
-          <path {...commonProps} d="M12.1 6l-5.4 4.2a1.2 1.2 0 0 0 .8 2.2h9a1.2 1.2 0 0 0 .8-2.2z" />
         </svg>
       );
     case "arrow":
@@ -118,24 +87,6 @@ function OptionList({ options }: { options: ReferenceOption[] }) {
     </>
   );
 }
-
-const HIGHLIGHTS = [
-  {
-    icon: "hanger" as const,
-    title: "Švelni drabužių analizė",
-    text: "Sistema pirmiausia remiasi tuo, ką iš tikrųjų matai nuotraukoje.",
-  },
-  {
-    icon: "spark" as const,
-    title: "Trys aiškūs variantai",
-    text: "Gauni ramesnį, ryškesnį ir kūrybiškesnį derinio kelią.",
-  },
-  {
-    icon: "bag" as const,
-    title: "Pirkinių kryptis",
-    text: "Jei ko nors trūksta, matysi konkrečias paieškos nuorodas ir prioritetus.",
-  },
-];
 
 export function StylingForm({
   seasons,
@@ -265,32 +216,16 @@ export function StylingForm({
     onFileSelect(event.dataTransfer.files?.[0] ?? null);
   };
 
-  const uploadHintText = previewUrl ? "Paspausk, jei nori pakeisti nuotrauką" : "Įkelk rūbų nuotraukas čia!";
+  const uploadHintText = previewUrl ? "Paspausk, jei nori pakeisti nuotrauką" : "Įkelti drabužių nuotrauką";
 
   return (
     <section className="panel panel--form">
       <div className="hero-grid">
         <div className="hero-copy">
-          <h1>Susikurk savo aprangos stilių, gauk derinius ir eksperimentuok!</h1>
+          <h1>Atrask naujus savo drabužių derinius</h1>
           <p className="hero-copy__lead">
-            <TypewriterText
-              durationMs={2000}
-              loopIntervalMs={10000}
-              text="Įkelk nuotrauką su drabužiais, pasirink progą ir nuotaiką, o StyleStep paruoš lengvai suprantamus pasiūlymus lietuvių kalba."
-            />
+            Įkelk nuotrauką, pasirink progą ir gauk 3 stiliaus pasiūlymus.
           </p>
-
-          <div className="hero-highlights">
-            {HIGHLIGHTS.map((item) => (
-              <article key={item.title} className="feature-card">
-                <span className="feature-card__icon" aria-hidden="true">
-                  <UiGlyph icon={item.icon} />
-                </span>
-                <strong className="feature-card__title">{item.title}</strong>
-                <span className="feature-card__text">{item.text}</span>
-              </article>
-            ))}
-          </div>
         </div>
 
         <div

@@ -30,7 +30,6 @@ export function Layout() {
           </div>
 
           <div className="header-actions">
-            <span className="header-plan-label">Peržiūros planas</span>
             <div className="plan-switcher" role="group" aria-label="Peržiūros plano pasirinkimas">
               <button
                 type="button"
