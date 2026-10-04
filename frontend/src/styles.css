@@ -420,8 +420,12 @@ label {
 }
 
 .hero-copy {
-  align-content: center;
+  align-self: stretch;
   display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  text-align: center;
 }
 
 .hero-copy h1,
@@ -434,8 +438,9 @@ label {
 }
 
 .hero-copy h1 {
-  font-size: clamp(1.75rem, 3vw, 2.95rem);
-  line-height: 1.08;
+  max-width: 14ch;
+  font-size: clamp(2.15rem, 4vw, 3.65rem);
+  line-height: 1.04;
 }
 
 .result-hero-title {
@@ -444,10 +449,11 @@ label {
 }
 
 .hero-copy p {
-  max-width: 760px;
+  max-width: 34rem;
   color: var(--muted);
+  font-size: clamp(1.02rem, 1.5vw, 1.18rem);
   line-height: 1.8;
-  margin: 0.85rem 0 0;
+  margin: 1.15rem 0 0;
 }
 
 .hero-copy__lead {
@@ -1577,6 +1583,10 @@ label {
   .panel {
     padding: 1.15rem;
     border-radius: 24px;
+  }
+
+  .hero-copy {
+    padding: 1.25rem 0.35rem;
   }
 
   .brand-link__title {
