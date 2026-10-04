@@ -359,7 +359,12 @@ export function StylingForm({
                 <span className="primary-button__icon" aria-hidden="true">
                   <UiGlyph icon="arrow" />
                 </span>
-                {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
+                <span className="note-composer__submit-label note-composer__submit-label--desktop">
+                  {isSubmitting ? "Ruošiame tavo stiliaus kryptį..." : "Gauti stiliaus pasiūlymus"}
+                </span>
+                <span className="note-composer__submit-label note-composer__submit-label--mobile">
+                  {isSubmitting ? "Ruošiama..." : "Gauti"}
+                </span>
               </button>
             </div>
           </div>
